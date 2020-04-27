@@ -57,15 +57,13 @@ public class MinMax
 			return layout.evaluateBoard();//utility value of terminal state
 		}//end if
 		
-		int utilityValue = Integer.MIN_VALUE;//Initialize to Negative Infinity
-		
+		int utilityValue = Integer.MIN_VALUE;//Initialize to Negative Infinity	
 		//Loops through available positions available to the current player
 		for(int i = 0; i  < layout.getAvailableSpaces().size(); i++)
 		{
 			Point move = layout.getAvailableSpaces().get(i);
 			Board successor = new Board(layout, move, layout.getCurrentPlayer());
 			this.successors.add(successor);
-			
 			utilityValue = Math.max(utilityValue, minValue(successor, alpha, beta, depthLimit));
 			successor.setUtilityValue(utilityValue);
 			
@@ -90,14 +88,12 @@ public class MinMax
 			return layout.evaluateBoard();//utility value of terminal state
 		}//end if
 		
-		int utilityValue = Integer.MAX_VALUE;//Initialize to Infinity
-		
+		int utilityValue = Integer.MAX_VALUE;//Initialize to Infinity	
 		//Loops through available positions available to the current player
 		for(int i = 0; i  < layout.getAvailableSpaces().size(); i++)
 		{
 			Point move = layout.getAvailableSpaces().get(i);
 			Board successor = new Board(layout, move, layout.getCurrentPlayer());
-			
 			utilityValue = Math.min(utilityValue, maxValue(successor, alpha, beta, depthLimit));
 			successor.setUtilityValue(utilityValue);
 			
