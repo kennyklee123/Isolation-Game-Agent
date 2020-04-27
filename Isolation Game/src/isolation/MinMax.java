@@ -40,13 +40,13 @@ public class MinMax
 		this.successors.clear();
 		this.startTime = sT;
 		this.bestUtilityValue = maxValue(layout, Integer.MIN_VALUE, Integer.MAX_VALUE, depthLimit);
-		return findBestMove();
+		
+		//System.out.println("Successors Generated: " + this.successors.size());
+		return findBestMove(layout.getCurrentPlayer());
 	}//end alphaBeta
 	
 	private int maxValue(Board layout, int alpha, int beta, int depthLimit)
 	{
-		int utilityValue = Integer.MIN_VALUE;//Initialize to Negative Infinity
-		
 		//Converts the timeTaken to make a move into seconds (System.nanoTime() is 1e9)
 		this.timeTaken = (long) ((System.nanoTime() - this.startTime) / 1e9);
 		
@@ -57,8 +57,7 @@ public class MinMax
 			return layout.evaluateBoard();//utility value of terminal state
 		}//end if
 		
-		//Fills an ArrayList with available position the player can move to
-		layout.findAvailableSpaces(layout.getCurrentPlayer());
+		int utilityValue = Integer.MIN_VALUE;//Initialize to Negative Infinity
 		
 		//Loops through available positions available to the current player
 		for(int i = 0; i  < layout.getAvailableSpaces().size(); i++)
@@ -66,8 +65,8 @@ public class MinMax
 			Point move = layout.getAvailableSpaces().get(i);
 			Board successor = new Board(layout, move, layout.getCurrentPlayer());
 			this.successors.add(successor);
+			
 			utilityValue = Math.max(utilityValue, minValue(successor, alpha, beta, depthLimit));
-			//Utility value of the successor state
 			successor.setUtilityValue(utilityValue);
 			
 			if(utilityValue >= beta)
@@ -81,27 +80,26 @@ public class MinMax
 	
 	private int minValue(Board layout, int alpha, int beta, int depthLimit)
 	{
-		int utilityValue = Integer.MAX_VALUE;//Initialize to Infinity
-		
 		//Converts the timeTaken to make a move into seconds (System.nanoTime() is 1e9)
 		this.timeTaken = (long) ((System.nanoTime() - this.startTime) / 1e9);
 		
 		//Terminal State / Time Limit / Game Over Check
 		if(layout.getDepth() >= depthLimit || layout.getAvailableSpaces().size() == 0
-			|| this.timeTaken > .975 * this.moveTimeLimit)
+			|| this.timeTaken > .95 * this.moveTimeLimit)
 		{
 			return layout.evaluateBoard();//utility value of terminal state
 		}//end if
 		
-		//Fills an ArrayList with available position the player can move to
-		layout.findAvailableSpaces(layout.getCurrentPlayer());
-				
+		int utilityValue = Integer.MAX_VALUE;//Initialize to Infinity
+		
 		//Loops through available positions available to the current player
 		for(int i = 0; i  < layout.getAvailableSpaces().size(); i++)
 		{
 			Point move = layout.getAvailableSpaces().get(i);
 			Board successor = new Board(layout, move, layout.getCurrentPlayer());
+			
 			utilityValue = Math.min(utilityValue, maxValue(successor, alpha, beta, depthLimit));
+			successor.setUtilityValue(utilityValue);
 			
 			if(utilityValue <= alpha)
 			{
@@ -122,13 +120,13 @@ public class MinMax
 		return this.bestUtilityValue;
 	}//end getBestUtilityValue
 
-	private Point findBestMove()
+	private Point findBestMove(char currentPlayer)
 	{
 		for(int i = 0; i < this.successors.size(); i++)
 		{
 			if(this.bestUtilityValue == this.successors.get(i).getUtilityValue())
 			{
-				this.bestMove = successors.get(i).findPosition(successors.get(i).getCurrentPlayer());
+				this.bestMove = successors.get(i).findPosition(currentPlayer);
 				break;//If multiple successors had same best utility value, use the first one
 			}//end if
 		}//end for

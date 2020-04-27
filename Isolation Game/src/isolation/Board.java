@@ -252,12 +252,17 @@ public class Board
 		utilityValue -= y * this.findAvailableSpaces(opponent).size();
 		
 		//Reduces utility value by a factor of ten if the player is next to one of board's edges
-		if(playerPosition.getX() == 0 || playerPosition.getX() == this.boardDimension - 1
-			|| playerPosition.getY() == 0 || playerPosition.getY() == this.boardDimension - 1)
+		if(playerPosition.getX() == 0 || playerPosition.getX() == this.boardDimension - 1)
 		{
 			utilityValue -= 10;
 		}//end if
+		//Reduces utility value by a factor of ten if the player is next to one of board's edges
+		if(playerPosition.getY() == 0 || playerPosition.getY() == this.boardDimension - 1)
+		{
+			utilityValue -= 10;
+		}
 		
+		//Subtracts a value for each surrounding space filled
 		for(int i = -1; i <= 1; i++)
 		{
 			for(int j = -1; j < 1; j++)
@@ -271,7 +276,7 @@ public class Board
 					}//end nested if
 				}//end if
 				if(i + opponentPosition.getX() >= 0 && i + opponentPosition.getX() <= this.boardDimension - 1
-					&& j + opponentPosition.getY() >= 0 && j + opponentPosition.getX() <= this.boardDimension - 1)
+					&& j + opponentPosition.getY() >= 0 && j + opponentPosition.getY() <= this.boardDimension - 1)
 				{
 					if(this.boardLayout[(int)opponentPosition.getX() + i][(int)opponentPosition.getY() + j] != '-')
 					{
@@ -293,6 +298,11 @@ public class Board
 	{
 		return this.availableSpaces;
 	}//end getAvailableSpaces
+	
+	public void clearAvailableSpaces()
+	{
+		this.availableSpaces.clear();
+	}//end clearAvailableSpaces
 	
 	public Board getParent()
 	{

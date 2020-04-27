@@ -61,12 +61,22 @@ public class IsolationGame
 		
 		System.out.println("\nInitial Board Layout:");
 		printBoardWithTurnLog(currentBoard);
+		
 		//Need to increase depth limit as game progresses (Iterative Deepening)
 		while(!gameFinished)
-		{		
+		{	
+			//Clear just incase there is stale data
+			currentBoard.clearAvailableSpaces();
+			//Determine available spaces for the current player before getting move
+			currentBoard.setAvailableSpaces(currentBoard.findAvailableSpaces(currentBoard.getCurrentPlayer()));
+			
 			if(this.computerTurn)//Computer makes a move
 			{
 				computerMove = search.alphaBeta(currentBoard, this.depthLimit, System.nanoTime());
+				
+				//For testing User on User
+				//computerMove = getUserMove(currentBoard);
+				
 				if(currentBoard.noMovesRemaining())//Checks if there are no available moves remaining
 				{
 					System.out.println("Congratulations! You win! The computer is out of moves!");
@@ -76,6 +86,8 @@ public class IsolationGame
 				{
 					this.computerMoves.add(formatPoint(computerMove));
 					currentBoard.movePlayer(this.computer, computerMove);
+					//Sets currentPlayer value for next turn
+					currentBoard.setCurrentPlayer(this.player);
 				}//end else
 			}//end if
 			
@@ -91,6 +103,8 @@ public class IsolationGame
 				{
 					this.userMoves.add(formatPoint(userMove));
 					currentBoard.movePlayer(this.player, userMove);
+					//Sets currentPlayer value for next turn
+					currentBoard.setCurrentPlayer(this.computer);
 				}//end else
 			}//end else
 			
@@ -99,7 +113,7 @@ public class IsolationGame
 			
 			//Prints updated board after each turn has been made
 			printBoardWithTurnLog(currentBoard);
-			System.out.println("\n\nUser Moves: " + this.userMoves);
+			System.out.println("\nUser Moves: " + this.userMoves);
 			System.out.println("Computer Moves: " + this.computerMoves + "\n");
 		}//end while
 	}//end play
@@ -109,7 +123,7 @@ public class IsolationGame
 	{	
 		char[] boardLetters = {'A', 'B', 'C' , 'D', 'E', 'F', 'G', 'H'};
 		
-		System.out.print("  1 2 3 4 5 6 7 8");
+		System.out.print("\n  1 2 3 4 5 6 7 8");
 		for(int i = 0; i < currentBoard.getBoardDimension(); i++)
 		{
 			System.out.print("\n" + boardLetters[i] + " ");
