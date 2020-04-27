@@ -10,26 +10,25 @@ public class IsolationGame
 {	
 	private Scanner kb;
 	private char computer;
-	@SuppressWarnings("unused")
 	private char player;
 	private boolean computerTurn;
 	private long moveTimeLimit;
 	private Board initialBoard;
 	private int depthLimit;
-	private ArrayList<Point> userMoves;
-	private ArrayList<Point> computerMoves;
+	private ArrayList<String> userMoves;
+	private ArrayList<String> computerMoves;
 	
 	public IsolationGame()
 	{
 		this.kb = new Scanner(System.in);
-		this.computer = 'X';//Default computer will be 'x'
+		this.computer = 'X';//Default computer will be 'X'
 		this.player = 'O';
 		this.computerTurn = true;
 		this.moveTimeLimit = 20;
-		this.initialBoard = new Board(8, this.computer);
+		this.initialBoard = new Board(8, 'X');//'X' will always go first
 		this.depthLimit = 6;
-		this.userMoves = new ArrayList<Point>(32);
-		this.computerMoves = new ArrayList<Point>(32);
+		this.userMoves = new ArrayList<String>(32);
+		this.computerMoves = new ArrayList<String>(32);
 		play();//Runs the game
 	}//end Default Constructor
 	
@@ -38,10 +37,10 @@ public class IsolationGame
 		this.kb = new Scanner(System.in);
 		determineTurnOrder(startingPlayer);
 		this.moveTimeLimit = mTL;
-		this.initialBoard = new Board(8, startingPlayer);
+		this.initialBoard = new Board(8, 'X');//'X' will always go first
 		this.depthLimit = 6;
-		this.userMoves = new ArrayList<Point>(32);
-		this.computerMoves = new ArrayList<Point>(32);
+		this.userMoves = new ArrayList<String>(32);
+		this.computerMoves = new ArrayList<String>(32);
 		play();//Runs the game
 	}//end Constructor
 	
@@ -61,42 +60,43 @@ public class IsolationGame
 		Point userMove, computerMove;
 		
 		System.out.println("\nInitial Board Layout:");
-		
+		printBoardWithTurnLog(currentBoard);
 		//Need to increase depth limit as game progresses (Iterative Deepening)
 		while(!gameFinished)
-		{
-			if(!this.computerTurn)//User makes a move
+		{		
+			if(this.computerTurn)//Computer makes a move
 			{
-				userMove = getUserMove(currentBoard);
-				if(userMove == null)//There were no remaining moves
-				{
-					System.out.println("Sorry! You lose! You are out of moves!");
-					gameFinished = true;
-				}//end if 
-				else//Moves were still available
-				{
-					this.userMoves.add(userMove);
-					currentBoard = new Board(currentBoard, userMove, this.player);
-				}//end else
-			}//end if
-			else//The computer makes a move
-			{
-				search.alphaBeta(currentBoard, this.depthLimit, System.nanoTime());
-				//There was no available move remaining
-				if(search.noMovesRemaining())
+				computerMove = search.alphaBeta(currentBoard, this.depthLimit, System.nanoTime());
+				if(currentBoard.noMovesRemaining())//Checks if there are no available moves remaining
 				{
 					System.out.println("Congratulations! You win! The computer is out of moves!");
 					gameFinished = true;
 				}//end if
 				else//The computer still had additional moves available
 				{
-					computerMove = search.getBestMove();
-					this.computerMoves.add(computerMove);
-					currentBoard = new Board(currentBoard, computerMove, this.computer);
+					this.computerMoves.add(formatPoint(computerMove));
+					currentBoard.movePlayer(this.computer, computerMove);
+				}//end else
+			}//end if
+			
+			else//User makes a move
+			{
+				userMove = getUserMove(currentBoard);
+				if(userMove == null)//Checks if there are no available moves remaining
+				{
+					System.out.println("Sorry! You lose! You are out of moves!");
+					gameFinished = true;
+				}//end if 
+				else//Moves were still available
+				{
+					this.userMoves.add(formatPoint(userMove));
+					currentBoard.movePlayer(this.player, userMove);
 				}//end else
 			}//end else
+			
 			//Updates variable for next turn
 			this.computerTurn = !this.computerTurn;
+			
 			//Prints updated board after each turn has been made
 			printBoardWithTurnLog(currentBoard);
 			System.out.println("\n\nUser Moves: " + this.userMoves);
@@ -118,16 +118,15 @@ public class IsolationGame
 				System.out.print(String.valueOf(currentBoard.getBoardLayout()[i][j]) + " ");
 			}//end inner for
 		}//end outer for
+		System.out.println();
 	}//end printTurnLog
 	
 	private Point getUserMove(Board currentBoard)
 	{
-		/*
-		if(currentBoard.getAvailableSpaces().size() == 0)
+		if(currentBoard.noMovesRemaining())
 		{
 			return null;
 		}//end if
-		*/
 		
 		//Used to validate user input for move
 		String pattern = "[A-H][1-8]";
@@ -192,4 +191,22 @@ public class IsolationGame
 		Point userInput = new Point(x, y);
 		return userInput;
 	}//end convertUserInput
+	
+	private String formatPoint(Point move)
+	{
+		String formattedPoint = "";
+		char[] boardLetters = {'A', 'B', 'C' , 'D', 'E', 'F', 'G', 'H'};
+		
+		for(int i = 0; i < boardLetters.length; i++)
+		{
+			if(move.getX() == i)
+			{
+				formattedPoint += boardLetters[i];
+				break;
+			}//end if
+		}//end for loop
+		formattedPoint += (int)move.getY() + 1;
+		
+		return formattedPoint;
+	}//end formatPoint
 }//end IterativeDeepening

@@ -3,7 +3,7 @@ package isolation;
 import java.util.ArrayList;
 import java.awt.Point;
 
-public class Board implements Comparable<Board>
+public class Board
 {
 	private int boardDimension;
 	private Board parent;
@@ -28,29 +28,32 @@ public class Board implements Comparable<Board>
 	
 	//Calls this constructor to generate Board state of next move
 	//char player is the player who is making the move on the board
-	public Board(Board parent, Point destination, char currentPlayer) 
+	public Board(Board parent, Point destination, char cP) //char cp is the passed in "currentPlayer"
 	{
 		this.parent = parent;
 		this.boardDimension = this.parent.boardDimension;
-		
 		this.boardLayout = new char[this.boardDimension][this.boardDimension];
 		copyBoardLayout(this.parent, this.boardLayout);
-		
 		this.depth = this.parent.depth + 1;
 		this.utilityValue = 0;
 		
-		//Need to get current position of player to mark it as '#' after moving
-		Point currentPosition = new Point(this.findPosition(currentPlayer));
-		//Move player to destination position
-		this.boardLayout[(int)destination.getX()][(int)destination.getY()] = currentPlayer;
-		//Overwrite previous position of player with '#'
-		this.boardLayout[(int)currentPosition.getX()][(int)currentPosition.getY()] = '#';
+		//Moves player to the new position
+		movePlayer(cP, destination);
 		
-		//Swaps players after each turn;
-		this.currentPlayer = (currentPlayer == 'X' ? 'O': 'X');
+		this.currentPlayer = cP == 'X' ? 'O': 'X';
 		//Finds remaining empty spaces that can be moved to on the next turn
 		this.availableSpaces = this.findAvailableSpaces(this.currentPlayer);
 	}//end Constructor
+
+	public void movePlayer(char cP, Point destination)
+	{
+		//Need to get current position of player to mark it as '#' after moving
+		Point lastPosition = new Point(this.findPosition(cP));
+		//Move player to destination position
+		this.boardLayout[(int)destination.getX()][(int)destination.getY()] = cP;
+		//Overwrite previous position of player with '#'
+		this.boardLayout[(int)lastPosition.getX()][(int)lastPosition.getY()] = '#';
+	}//end movePlayer
 	
 	private void initializeBoardLayout()
 	{
@@ -62,7 +65,7 @@ public class Board implements Comparable<Board>
 			}//end inner for
 		}//end outer for
 		
-		//Initializes Starting Positions for Both Players ('o' will always be bottom right)
+		//Initializes Starting Positions for Both Players ('O' will always be bottom right)
 		this.boardLayout[0][0] = 'X';
 		this.boardLayout[this.boardDimension - 1][this.boardDimension - 1] = 'O';
 	}//end initializeBoardLayout
@@ -97,10 +100,10 @@ public class Board implements Comparable<Board>
 	public ArrayList<Point> findAvailableSpaces(char player)
 	{
 		ArrayList<Point> availableSpaces = new ArrayList<Point>(64);
-		//Where the player 'x' or 'o' is currently located
-		Point currentPosition = new Point(this.findPosition(player));
+		//Where the player 'X' or 'O' is currently located
+		Point currentPosition = new Point(findPosition(player));
 		
-		//Find Available Moves in directions (up, left, down, right)
+		//Find Available Moves in directions (up, down, left, right)
 		findUDLRSpaces(availableSpaces, currentPosition);
 		//Find Available Moves on diagonals
 		findDiagonalSpaces(availableSpaces, currentPosition);
@@ -110,30 +113,16 @@ public class Board implements Comparable<Board>
 	
 	private void findUDLRSpaces(ArrayList<Point> availableSpaces, Point currentPosition)
 	{
-		int x = (int)currentPosition.getX();
-		int y = (int)currentPosition.getY();
-		
-		//Checks for availableSpaces moving 'UP'
-		for(int i = x + 1; i < this.boardDimension; i++)
-		{
-			//'-' denotes an available/empty space
-			if(this.boardLayout[i][y] == '-')
-			{
-				availableSpaces.add(new Point(i, y));
-			}//end if
-			else
-			{
-				break;
-			}//end else
-		}//end for
+		int row = (int)currentPosition.getX();
+		int col = (int)currentPosition.getY();
 		
 		//Checks for availableSpaces moving 'DOWN'
-		for(int i = x - 1; i >= 0; i--)
+		for(int i = row + 1; i < this.boardDimension; i++)
 		{
 			//'-' denotes an available/empty space
-			if(this.boardLayout[i][y] == '-')
+			if(this.boardLayout[i][col] == '-')
 			{
-				availableSpaces.add(new Point(i, y));
+				availableSpaces.add(new Point(i, col));
 			}//end if
 			else
 			{
@@ -141,13 +130,13 @@ public class Board implements Comparable<Board>
 			}//end else
 		}//end for
 		
-		//Checks for availableSpaces moving 'LEFT'
-		for(int i = y + 1; i < this.boardDimension; i++)
+		//Checks for availableSpaces moving 'UP'
+		for(int i = row - 1; i >= 0; i--)
 		{
 			//'-' denotes an available/empty space
-			if(this.boardLayout[x][i] == '-')
+			if(this.boardLayout[i][col] == '-')
 			{
-				availableSpaces.add(new Point(x, i));
+				availableSpaces.add(new Point(i, col));
 			}//end if
 			else
 			{
@@ -156,12 +145,26 @@ public class Board implements Comparable<Board>
 		}//end for
 		
 		//Checks for availableSpaces moving 'RIGHT'
-		for(int i = y - 1; i >= 0; i--)
+		for(int i = col + 1; i < this.boardDimension; i++)
 		{
 			//'-' denotes an available/empty space
-			if(this.boardLayout[x][i] == '-')
+			if(this.boardLayout[row][i] == '-')
 			{
-				availableSpaces.add(new Point(x, i));
+				availableSpaces.add(new Point(row, i));
+			}//end if
+			else
+			{
+				break;
+			}//end else
+		}//end for
+		
+		//Checks for availableSpaces moving 'LEFT'
+		for(int i = col - 1; i >= 0; i--)
+		{
+			//'-' denotes an available/empty space
+			if(this.boardLayout[row][i] == '-')
+			{
+				availableSpaces.add(new Point(row, i));
 			}//end if
 			else
 			{
@@ -172,17 +175,17 @@ public class Board implements Comparable<Board>
 	
 	private void findDiagonalSpaces(ArrayList<Point> availableSpaces, Point currentPosition)
 	{
-		int x = (int)currentPosition.getX();
-		int y = (int)currentPosition.getY();
+		int row = (int)currentPosition.getX();
+		int col = (int)currentPosition.getY();
 		int diagonalDistance;
 		
 		//Checks for availableSpaces moving 'TOP LEFT'
-		diagonalDistance = (x > y ? y: x);
+		diagonalDistance = (row > col ? col: row);
 		for(int i = 1; i <= diagonalDistance; i++)
 		{
-			if(this.boardLayout[x - i][y - i] == '-')
+			if(this.boardLayout[row - i][col - i] == '-')
 			{
-				availableSpaces.add(new Point(x - i, y - i));
+				availableSpaces.add(new Point(row - i, col - i));
 			}//end if
 			else
 			{
@@ -191,12 +194,12 @@ public class Board implements Comparable<Board>
 		}//end for
 		
 		//Checks for availableSpaces moving 'TOP RIGHT'
-		diagonalDistance = (x > this.boardDimension - y - 1 ? this.boardDimension - y - 1: x);
+		diagonalDistance = (row > this.boardDimension - col - 1 ? this.boardDimension - col - 1: row);
 		for(int i = 1; i <= diagonalDistance; i++)
 		{
-			if(this.boardLayout[x - i][y + i] == '-')
+			if(this.boardLayout[row - i][col + i] == '-')
 			{
-				availableSpaces.add(new Point(x - i, y + i));
+				availableSpaces.add(new Point(row - i, col + i));
 			}//end if
 			else
 			{
@@ -205,12 +208,12 @@ public class Board implements Comparable<Board>
 		}//end for
 		
 		//Checks for availableSpaces moving 'BOTTOM LEFT'
-		diagonalDistance = (this.boardDimension - x - 1 < y ? this.boardDimension - x - 1: y);
+		diagonalDistance = (this.boardDimension - row - 1 < col ? this.boardDimension - row - 1: col);
 		for(int i = 1; i <= diagonalDistance; i++)
 		{
-			if(this.boardLayout[x + i][y - i] == '-')
+			if(this.boardLayout[row + i][col - i] == '-')
 			{
-				availableSpaces.add(new Point(x + i, y - i));
+				availableSpaces.add(new Point(row + i, col - i));
 			}//end if
 			else
 			{
@@ -219,13 +222,13 @@ public class Board implements Comparable<Board>
 		}//end for
 		
 		//Checks for availableSpaces moving 'BOTTOM RIGHT'
-		diagonalDistance = (this.boardDimension - x - 1 < this.boardDimension - y - 1 
-							? this.boardDimension - x - 1: this.boardDimension - y - 1);
+		diagonalDistance = (this.boardDimension - row - 1 < this.boardDimension - col - 1 
+							? this.boardDimension - row - 1: this.boardDimension - col - 1);
 		for(int i = 1; i <= diagonalDistance; i++)
 		{
-			if(this.boardLayout[x + i][y + i] == '-')
+			if(this.boardLayout[row + i][col + i] == '-')
 			{
-				availableSpaces.add(new Point(x + i, y + i));
+				availableSpaces.add(new Point(row + i, col + i));
 			}//end if
 			else
 			{
@@ -281,6 +284,11 @@ public class Board implements Comparable<Board>
 		return utilityValue;
 	}//end evaluateBoard
 	
+	public void setAvailableSpaces(ArrayList<Point> availSpaces)
+	{
+		this.availableSpaces = availSpaces;
+	}//end setAvailableSpaces()
+	
 	public ArrayList<Point> getAvailableSpaces()
 	{
 		return this.availableSpaces;
@@ -300,6 +308,11 @@ public class Board implements Comparable<Board>
 	{
 		return this.boardLayout;
 	}//end getBoardLayout
+	
+	public void setCurrentPlayer(char cPlayer)
+	{
+		this.currentPlayer = cPlayer;	
+	}//end setCurrentPlayer
 	
 	//Returns which player's move it is currently
 	public char getCurrentPlayer()
@@ -322,21 +335,10 @@ public class Board implements Comparable<Board>
 		return this.boardDimension;
 	}//ends getBoardDimension
 	
-	@Override
-	public int compareTo(Board b) 
+	public boolean noMovesRemaining()
 	{
-		for(int row = 0; row < this.boardDimension; row++)
-		{
-			for(int col = 0; col < this.boardDimension; col++)
-			{
-				if(!(this.boardLayout[row][col] == b.getBoardLayout()[row][col]))
-				{
-					return 0;
-				}//end if
-			}//end inner for
-		}//end outer for
-		return 1;
-	}//end compareTo
+		return this.availableSpaces.size() == 0 ? true: false;
+	}//end noMovesRemaining
 	
 	public void printBoardLayout()
 	{

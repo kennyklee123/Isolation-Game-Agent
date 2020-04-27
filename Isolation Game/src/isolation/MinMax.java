@@ -34,25 +34,25 @@ public class MinMax
 	}//end Constructor
 	
 	//Pass in a depth search limit and the starting board layout of the turn
-	public MinMax alphaBeta(Board initialLayout, int depthLimit, long startTime)
+	public Point alphaBeta(Board layout, int depthLimit, long sT)
 	{
-		this.startTime = startTime;
-		this.successors.clear();//Reinitializes list of successors for each computer turn
-		this.bestUtilityValue = maxValue(initialLayout, Integer.MIN_VALUE, Integer.MAX_VALUE, depthLimit);
-		findBestMove();
-		return this;
+		//Reinitializes list of successors for each computer turn
+		this.successors.clear();
+		this.startTime = sT;
+		this.bestUtilityValue = maxValue(layout, Integer.MIN_VALUE, Integer.MAX_VALUE, depthLimit);
+		return findBestMove();
 	}//end alphaBeta
 	
 	private int maxValue(Board layout, int alpha, int beta, int depthLimit)
 	{
-		int utilityValue = Integer.MIN_VALUE;//Initialize to Negative Infitity
+		int utilityValue = Integer.MIN_VALUE;//Initialize to Negative Infinity
 		
 		//Converts the timeTaken to make a move into seconds (System.nanoTime() is 1e9)
 		this.timeTaken = (long) ((System.nanoTime() - this.startTime) / 1e9);
 		
 		//Terminal State / Time Limit / Game Over Check
 		if(layout.getDepth() >= depthLimit || layout.getAvailableSpaces().size() == 0
-			|| this.timeTaken > .975 * this.moveTimeLimit)
+			|| this.timeTaken > .95 * this.moveTimeLimit)
 		{
 			return layout.evaluateBoard();//utility value of terminal state
 		}//end if
@@ -81,7 +81,7 @@ public class MinMax
 	
 	private int minValue(Board layout, int alpha, int beta, int depthLimit)
 	{
-		int utilityValue = Integer.MAX_VALUE;//Initialize to Infitity
+		int utilityValue = Integer.MAX_VALUE;//Initialize to Infinity
 		
 		//Converts the timeTaken to make a move into seconds (System.nanoTime() is 1e9)
 		this.timeTaken = (long) ((System.nanoTime() - this.startTime) / 1e9);
@@ -122,19 +122,16 @@ public class MinMax
 		return this.bestUtilityValue;
 	}//end getBestUtilityValue
 
-	private void findBestMove()
+	private Point findBestMove()
 	{
 		for(int i = 0; i < this.successors.size(); i++)
 		{
 			if(this.bestUtilityValue == this.successors.get(i).getUtilityValue())
 			{
 				this.bestMove = successors.get(i).findPosition(successors.get(i).getCurrentPlayer());
+				break;//If multiple successors had same best utility value, use the first one
 			}//end if
 		}//end for
-	}//end findBestMove
-	
-	public Point getBestMove()
-	{
 		return this.bestMove;
-	}//end getBestMove
+	}//end findBestMove
 }//end class MinMax
