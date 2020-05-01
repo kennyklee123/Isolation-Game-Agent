@@ -11,9 +11,9 @@ public class Board
 	private int depth;
 	private int utilityValue;//Value of state from evaluation function
 	private ArrayList<Point> availableSpaces;
-	private char currentPlayer; //Whose move is it?
+	private char initialPlayer; //Whose move is it?
 	
-	public Board(int bD, char initialPlayer)
+	public Board(int bD, char player)
 	{
 		this.boardDimension = bD;
 		this.parent = null;
@@ -21,9 +21,9 @@ public class Board
 		this.depth = 0;
 		this.utilityValue = 0;
 		this.availableSpaces = new ArrayList<Point>(64);//64 is max available (prevents resizing)
-		this.currentPlayer = initialPlayer;//The player who will go first
+		this.initialPlayer = player;//The player who will go first
 		initializeBoardLayout();
-		this.availableSpaces = this.findAvailableSpaces(this.currentPlayer);
+		this.availableSpaces = this.findAvailableSpaces(initialPlayer);
 	}//end Default Constructor
 	
 	//Calls this constructor to generate Board state of next move
@@ -34,27 +34,20 @@ public class Board
 		this.boardDimension = this.parent.boardDimension;
 		this.boardLayout = new char[this.boardDimension][this.boardDimension];
 		copyBoardLayout(this.parent, this.boardLayout);
-		this.depth = this.parent.depth + 1;
+		//this.depth = this.parent.depth + 1;
 		this.utilityValue = 0;
-		
-		//Moves player to the new position
-		movePlayer(cP, destination);
-		
-		this.currentPlayer = cP == 'X' ? 'O': 'X';
-		//Finds remaining empty spaces that can be moved to on the next turn
-		this.availableSpaces = this.findAvailableSpaces(this.currentPlayer);
+		movePlayer(cP, destination);	
 	}//end Constructor
 
+	//SEE IF I NEED TO INPUT BOTH LOCATIONS LIKE ANTANASIO DOES
 	public void movePlayer(char cP, Point destination)
 	{
 		//Need to get current position of player to mark it as '#' after moving
-		Point lastPosition = new Point(this.findPosition(cP));
-		//Move player to destination position
+		Point lastPosition = new Point(this.findPosition(cP));		
 		this.boardLayout[(int)destination.getX()][(int)destination.getY()] = cP;
 		//Overwrite previous position of player with '#'
 		this.boardLayout[(int)lastPosition.getX()][(int)lastPosition.getY()] = '#';
 	}//end movePlayer
-	
 	private void initializeBoardLayout()
 	{
 		for(int row = 0; row < this.boardDimension; row++)
@@ -237,18 +230,25 @@ public class Board
 		}//end for
 	}//findDiagonalSpaces
 	
-	public int evaluateBoard()
+	public int evaluateBoard(char caller)
 	{
 		//Multipliers to adjust the weight of a good or bad move
 		int x = 3, y = 1, z = 3;
-		
+		char player = caller;
+		char opponent;
 		//"this.currentPlayer" is the player
-		char opponent = this.currentPlayer == 'X' ? 'O':'X';
+		if(caller =='X')
+		{
+			opponent = 'O';
+		}
+		else
+			opponent = 'X';
+		//char opponent = player == 'X' ? 'O':'X';
 		
-		Point playerPosition = this.findPosition(this.currentPlayer);
+		Point playerPosition = this.findPosition(player);
 		Point opponentPosition = this.findPosition(opponent);
 		
-		int utilityValue = x * this.availableSpaces.size();
+		int utilityValue = x * this.findAvailableSpaces(player).size();
 		utilityValue -= y * this.findAvailableSpaces(opponent).size();
 		
 		//Reduces utility value by a factor of ten if the player is next to one of board's edges
@@ -318,18 +318,7 @@ public class Board
 	{
 		return this.boardLayout;
 	}//end getBoardLayout
-	
-	public void setCurrentPlayer(char cPlayer)
-	{
-		this.currentPlayer = cPlayer;	
-	}//end setCurrentPlayer
-	
-	//Returns which player's move it is currently
-	public char getCurrentPlayer()
-	{
-		return this.currentPlayer;
-	}//end getMove
-	
+		
 	public void setUtilityValue(int uv)
 	{
 		this.utilityValue = uv;

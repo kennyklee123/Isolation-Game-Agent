@@ -13,8 +13,8 @@ public class IsolationGame
 	private char player;
 	private boolean computerTurn;
 	private long moveTimeLimit;
+
 	private Board initialBoard;
-	private int depthLimit;
 	private ArrayList<String> userMoves;
 	private ArrayList<String> computerMoves;
 	
@@ -26,7 +26,6 @@ public class IsolationGame
 		this.computerTurn = true;
 		this.moveTimeLimit = 20;
 		this.initialBoard = new Board(8, 'X');//'X' will always go first
-		this.depthLimit = 1;
 		this.userMoves = new ArrayList<String>(32);
 		this.computerMoves = new ArrayList<String>(32);
 		play();//Runs the game
@@ -38,7 +37,6 @@ public class IsolationGame
 		determineTurnOrder(startingPlayer);
 		this.moveTimeLimit = mTL;
 		this.initialBoard = new Board(8, 'X');//'X' will always go first
-		this.depthLimit = 4;
 		this.userMoves = new ArrayList<String>(32);
 		this.computerMoves = new ArrayList<String>(32);
 		play();//Runs the game
@@ -55,7 +53,7 @@ public class IsolationGame
 	private void play()
 	{	
 		boolean gameFinished = false;
-		MinMax search = new MinMax(this.moveTimeLimit);
+		Adversarial search = new Adversarial(this.moveTimeLimit, this.computer, this.player);
 		Board currentBoard = this.initialBoard;
 		Point userMove, computerMove;
 		
@@ -65,18 +63,9 @@ public class IsolationGame
 		//Need to increase depth limit as game progresses (Iterative Deepening)
 		while(!gameFinished)
 		{	
-			//Clear just incase there is stale data
-			currentBoard.clearAvailableSpaces();
-			//Determine available spaces for the current player before getting move
-			currentBoard.setAvailableSpaces(currentBoard.findAvailableSpaces(currentBoard.getCurrentPlayer()));
-			
 			if(this.computerTurn)//Computer makes a move
 			{
-				computerMove = search.alphaBeta(currentBoard, this.depthLimit, System.nanoTime());
-				
-				//For testing User on User
-				//computerMove = getUserMove(currentBoard);
-				
+				currentBoard.setAvailableSpaces(currentBoard.findAvailableSpaces(this.computer));					
 				if(currentBoard.noMovesRemaining())//Checks if there are no available moves remaining
 				{
 					System.out.println("Congratulations! You win! The computer is out of moves!");
@@ -84,15 +73,15 @@ public class IsolationGame
 				}//end if
 				else//The computer still had additional moves available
 				{
+					computerMove = search.iterativeDeepening(currentBoard); //calls iterative deepening
 					this.computerMoves.add(formatPoint(computerMove));
 					currentBoard.movePlayer(this.computer, computerMove);
-					//Sets currentPlayer value for next turn
-					currentBoard.setCurrentPlayer(this.player);
 				}//end else
 			}//end if
 			
 			else//User makes a move
 			{
+				currentBoard.setAvailableSpaces(currentBoard.findAvailableSpaces(this.player));
 				userMove = getUserMove(currentBoard);
 				if(userMove == null)//Checks if there are no available moves remaining
 				{
@@ -103,8 +92,6 @@ public class IsolationGame
 				{
 					this.userMoves.add(formatPoint(userMove));
 					currentBoard.movePlayer(this.player, userMove);
-					//Sets currentPlayer value for next turn
-					currentBoard.setCurrentPlayer(this.computer);
 				}//end else
 			}//end else
 			
@@ -123,7 +110,7 @@ public class IsolationGame
 	{	
 		char[] boardLetters = {'A', 'B', 'C' , 'D', 'E', 'F', 'G', 'H'};
 		
-		System.out.print("\n  1 2 3 4 5 6 7 8");
+		System.out.print("\n  1 2 3 4 5 6 7 8        Computer vs. Opponent");
 		for(int i = 0; i < currentBoard.getBoardDimension(); i++)
 		{
 			System.out.print("\n" + boardLetters[i] + " ");
@@ -223,4 +210,4 @@ public class IsolationGame
 		
 		return formattedPoint;
 	}//end formatPoint
-}//end IterativeDeepening
+}
