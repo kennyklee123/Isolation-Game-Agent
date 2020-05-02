@@ -137,4 +137,63 @@ public class Adversarial
 		return value;
 	}//minValue
 	
+	public int evaluateBoard(char caller, Board layout)
+	{
+		//Multipliers to adjust the weight of a good or bad move
+		int x = 3, y = 1, z = 3;
+		char player = caller;
+		char opponent;
+		//"this.currentPlayer" is the player
+		if(caller =='X')
+		{
+			opponent = 'O';
+		}
+		else
+			opponent = 'X';
+		//char opponent = player == 'X' ? 'O':'X';
+		
+		Point playerPosition = layout.findPosition(player);
+		Point opponentPosition = layout.findPosition(opponent);
+		
+		int utilityValue = x * layout.findAvailableSpaces(player).size();
+		utilityValue -= y * layout.findAvailableSpaces(opponent).size();
+		
+		//Reduces utility value by a factor of ten if the player is next to one of board's edges
+		if(playerPosition.getX() == 0 || playerPosition.getX() == layout.getBoardDimension()- 1)
+		{
+			utilityValue -= 10;
+		}//end if
+		//Reduces utility value by a factor of ten if the player is next to one of board's edges
+		if(playerPosition.getY() == 0 || playerPosition.getY() == layout.getBoardDimension()- 1)
+		{
+			utilityValue -= 10;
+		}
+		
+		//Subtracts a value for each surrounding space filled
+		for(int i = -1; i <= 1; i++)
+		{
+			for(int j = -1; j < 1; j++)
+			{
+				if(i + playerPosition.getX() >= 0 && i + playerPosition.getX() <= layout.getBoardDimension() - 1
+					&& j + playerPosition.getY() >= 0 && j + playerPosition.getY() <= layout.getBoardDimension() - 1)
+				{
+					if(layout.getBoardLayout()[(int)playerPosition.getX() + i][(int)playerPosition.getY() + j] != '-')
+					{
+						utilityValue -= z;
+					}//end nested if
+				}//end if
+				if(i + opponentPosition.getX() >= 0 && i + opponentPosition.getX() <= layout.getBoardDimension() - 1
+					&& j + opponentPosition.getY() >= 0 && j + opponentPosition.getY() <= layout.getBoardDimension() - 1)
+				{
+					if(layout.getBoardLayout()[(int)opponentPosition.getX() + i][(int)opponentPosition.getY() + j] != '-')
+					{
+						utilityValue += z;
+					}//end nested if
+				}//end if
+			}//end inner for
+		}//end outer for
+		layout.setUtilityValue(utilityValue);
+		return utilityValue;
+	}//end evaluateBoard
+	
 }//end class MinMax
