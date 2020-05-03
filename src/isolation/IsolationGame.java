@@ -13,10 +13,10 @@ public class IsolationGame
 	private char player;
 	private boolean computerTurn;
 	private long moveTimeLimit;
-
 	private Board initialBoard;
 	private ArrayList<String> userMoves;
 	private ArrayList<String> computerMoves;
+	private ArrayList<String> totalMoves;
 	
 	public IsolationGame()
 	{
@@ -28,6 +28,7 @@ public class IsolationGame
 		this.initialBoard = new Board(8, 'X');//'X' will always go first
 		this.userMoves = new ArrayList<String>(32);
 		this.computerMoves = new ArrayList<String>(32);
+		this.totalMoves = new ArrayList<String>(32);
 		play();//Runs the game
 	}//end Default Constructor
 	
@@ -39,6 +40,7 @@ public class IsolationGame
 		this.initialBoard = new Board(8, 'X');//'X' will always go first
 		this.userMoves = new ArrayList<String>(32);
 		this.computerMoves = new ArrayList<String>(32);
+		this.totalMoves = new ArrayList<String>(32);
 		play();//Runs the game
 	}//end Constructor
 	
@@ -56,10 +58,11 @@ public class IsolationGame
 		Adversarial search = new Adversarial(this.moveTimeLimit, this.computer, this.player);
 		Board currentBoard = this.initialBoard;
 		Point userMove, computerMove;
+		int turnCount = 0;
 		
 		System.out.println("\nInitial Board Layout:");
-		printBoardWithTurnLog(currentBoard,0);
-		int turnCount = 0;
+		printBoardWithTurnLog(currentBoard, turnCount);
+		
 		//Need to increase depth limit as game progresses (Iterative Deepening)
 		while(!gameFinished)
 		{	
@@ -73,10 +76,10 @@ public class IsolationGame
 				}//end if
 				else//The computer still had additional moves available
 				{
-					computerMove = search.iterativeDeepening(currentBoard); //calls iterative deepening
+					computerMove = search.iterativeDeepening(currentBoard, turnCount); 
 					this.computerMoves.add(formatPoint(computerMove));
+					this.totalMoves.add(formatPoint(computerMove));
 					currentBoard.movePlayer(this.computer, computerMove);
-					
 				}//end else
 			}//end if
 			
@@ -92,6 +95,7 @@ public class IsolationGame
 				else//Moves were still available
 				{
 					this.userMoves.add(formatPoint(userMove));
+					this.totalMoves.add(formatPoint(userMove));
 					currentBoard.movePlayer(this.player, userMove);
 				}//end else
 			}//end else
@@ -101,92 +105,11 @@ public class IsolationGame
 			turnCount++;
 			//Prints updated board after each turn has been made
 			printBoardWithTurnLog(currentBoard, turnCount);
-			System.out.println("\nUser Moves: " + this.userMoves);
-			System.out.println("Computer Moves: " + this.computerMoves + "\n");
+			if(!this.computerTurn && this.computerMoves.size() > 0)
+				System.out.println("\nComputer's Move: " + this.computerMoves.get(this.computerMoves.size() - 1));
 		}//end while
 	}//end play
-	/*
-	 
-	//Prints an update turn log after computer/user makes a move
-	private void printBoardWithTurnLog(Board currentBoard)
-	{	
-		char[] boardLetters = {'A', 'B', 'C' , 'D', 'E', 'F', 'G', 'H'};
-		
-		System.out.print("\n  1 2 3 4 5 6 7 8        Computer vs. Opponent");
-		for(int i = 0; i < currentBoard.getBoardDimension(); i++)
-		{
-			System.out.print("\n" + boardLetters[i] + " ");
-			for(int j = 0; j < currentBoard.getBoardDimension(); j++)
-			{
-				System.out.print(String.valueOf(currentBoard.getBoardLayout()[i][j]) + " ");
-				
-			}//end inner for
-			
-			//System.out.print(this.computerMoves.get((i)));
-			//if(this.computerMoves.get(i) != null)
-			//	System.out.print(this.computerMoves.get(i) + "   ");
-			//if(this.userMoves.get(i) != null)
-				//System.out.print(this.userMoves.get(i));
-		}//end outer for
-		System.out.println();
-		
-	}//end printTurnLog
-	*/
-	private void printBoardWithTurnLog(Board currentBoard, int turnCount)
-	{	
-		char[] boardLetters = {'A', 'B', 'C' , 'D', 'E', 'F', 'G', 'H'};
-		System.out.print("\n  1 2 3 4 5 6 7 8");
-		System.out.print(padRight("", 5) + "Computer vs. Opponent");
-		for(int i = 0; i < currentBoard.getBoardDimension(); i++)
-		{
-			System.out.print("\n" + boardLetters[i] + " ");
-			for(int j = 0; j < currentBoard.getBoardDimension(); j++)
-			{
-				System.out.print(String.valueOf(currentBoard.getBoardLayout()[i][j]) + " ");
-			}//end inner for		
-			//If Computer Goes First
-			if(i < computerMoves.size() && !(computerMoves.get(i).equals("")))
-			{
-				if (i < computerMoves.size() && i < userMoves.size() && !(computerMoves.get(i).equals("")) && !(userMoves.get(i).equals("")))
-				{
-					System.out.print(padRight("", 4) + (i+1) + ". " + computerMoves.get(i) + padRight("", 8) + userMoves.get(i));
-				}
-				else
-				{
-					System.out.print(padRight("", 4) + (i+1) + ". " + computerMoves.get(i));
-				}
-			}//end if
-			else //If opponent goes first
-			{
-				if(i < userMoves.size() && !(userMoves.get(i).equals("")))
-				{
-					if (i < userMoves.size() && i < computerMoves.size() && !(userMoves.get(i).equals("")) && !		(computerMoves.get(i).equals("")))
-					{
-						System.out.print(padRight("", 4) +(i+1) + ". " + computerMoves.get(i) + padRight("", 8) + userMoves.get(i));
-					}
-					else
-					{
-						System.out.print((padRight("", 4) +(i+1) + ". " + padRight("", 10) + userMoves.get(i)));
-					}
-				}
-			}//end else
-			if(this.userMoves.size() > 8 || this.computerMoves.size() > 8)
-			{
-				
-			}
-		}//end outer for
-		
-		System.out.println();
-	}//end printBoardWithTurnLog
 	
-	public static String padRight(String s, int n) {
-	     return String.format("%-" + n + "s", s);  
-	}//end padRight
-
-	public static String padLeft(String s, int n) {
-	    return String.format("%" + n + "s", s);  
-	}//end padLeft
-
 	private Point getUserMove(Board currentBoard)
 	{
 		if(currentBoard.noMovesRemaining())
@@ -204,7 +127,7 @@ public class IsolationGame
 		
 		while(!valid)
 		{
-			System.out.print("Enter opponent's move: ");
+			System.out.print("\nEnter opponent's move: ");
 			input = kb.nextLine();
 			input = input.toUpperCase();
 			//Used to match user input to expected format (via regular expression)
@@ -234,6 +157,95 @@ public class IsolationGame
 		}//end while
 		return userInput;
 	}//end getUserMove
+	
+	private void printBoardWithTurnLog(Board currentBoard, int turnCount)
+	{	
+		char[] boardLetters = {'A', 'B', 'C' , 'D', 'E', 'F', 'G', 'H'};
+		System.out.print("\n  1 2 3 4 5 6 7 8");
+		System.out.print(padRight("", 5) + "Computer vs. Opponent");
+		if(turnCount <= 16) {
+			for(int i = 0; i < currentBoard.getBoardDimension(); i++) {
+				System.out.print("\n" + boardLetters[i] + " ");
+				for(int j = 0; j < currentBoard.getBoardDimension(); j++) {
+					System.out.print(String.valueOf(currentBoard.getBoardLayout()[i][j]) + " ");
+				}//end inner for
+				
+				//If Computer Goes First
+				if(i < computerMoves.size() && !(computerMoves.get(i).equals(""))) {
+					if (i < computerMoves.size() && i < userMoves.size() && !(computerMoves.get(i).equals("")) && !(userMoves.get(i).equals("")))
+						System.out.print(padRight("", 4) + (i+1) + ". " + computerMoves.get(i) + padRight("", 8) + userMoves.get(i));
+					else
+						System.out.print(padRight("", 4) + (i+1) + ". " + computerMoves.get(i));
+				}//end if
+				//If opponent goes first
+				else {
+					if(i < userMoves.size() && !(userMoves.get(i).equals(""))) {
+						if (i < userMoves.size() && i < computerMoves.size() && !(userMoves.get(i).equals("")) && !(computerMoves.get(i).equals("")))
+							System.out.print(padRight("", 4) +(i+1) + ". " + computerMoves.get(i) + padRight("", 8) + userMoves.get(i));
+						else
+							System.out.print((padRight("", 4) +(i+1) + ". " + padRight("", 10) + userMoves.get(i)));
+					}
+				}//end else
+			}//end outer for
+			System.out.println();
+		}//end if(turnCount < 16)
+		//Prints Moves beyond Row H
+		else {//After 16 turns
+			for(int i = 0; i < totalMoves.size(); i++) {
+				if(i < 8) {
+					System.out.print("\n" + boardLetters[i] + " ");
+					for(int j = 0; j < currentBoard.getBoardDimension(); j++) {
+						System.out.print(String.valueOf(currentBoard.getBoardLayout()[i][j]) + " ");
+					}//end inner for
+					//If Computer Goes First
+					if(i < computerMoves.size() && !(computerMoves.get(i).equals(""))) {
+						if (i < computerMoves.size() && i < userMoves.size() && !(computerMoves.get(i).equals("")) && !(userMoves.get(i).equals("")))
+							System.out.print(padRight("", 4) + (i+1) + ". " + computerMoves.get(i) + padRight("", 8) + userMoves.get(i));
+						else
+							System.out.print(padRight("", 4) + (i+1) + ". " + computerMoves.get(i));
+					}//end if
+					//If opponent goes first
+					else {
+						if(i < userMoves.size() && !(userMoves.get(i).equals(""))) {
+							if (i < userMoves.size() && i < computerMoves.size() && !(userMoves.get(i).equals("")) && !(computerMoves.get(i).equals("")))
+								System.out.print(padRight("", 4) +(i+1) + ". " + computerMoves.get(i) + padRight("", 8) + userMoves.get(i));
+							else
+								System.out.print((padRight("", 4) +(i+1) + ". " + padRight("", 10) + userMoves.get(i)));
+						}
+					}//end else
+				}//end if
+				else {
+					//If Computer Goes First
+					if(i < computerMoves.size() && !(computerMoves.get(i).equals(""))) {
+						if (i < computerMoves.size() && i < userMoves.size() && !(computerMoves.get(i).equals("")) && !(userMoves.get(i).equals("")))
+							System.out.print("\n" + padRight("", 22) + (i+1) + ". " + computerMoves.get(i) + padRight("", 8) + userMoves.get(i));
+						else
+							System.out.print("\n" + padRight("", 22) + (i+1) + ". " + computerMoves.get(i));
+					}//end if
+					//If opponent goes first
+					else {
+						if(i < userMoves.size() && !(userMoves.get(i).equals(""))) {
+							if (i < userMoves.size() && i < computerMoves.size() && !(userMoves.get(i).equals("")) && !(computerMoves.get(i).equals("")))
+								System.out.print("\n" + padRight("", 22) +(i+1) + ". " + computerMoves.get(i) + padRight("", 8) + userMoves.get(i));
+							else 
+								System.out.print("\n" + (padRight("", 22) +(i+1) + ". " + padRight("", 10) + userMoves.get(i)));
+						}//end if
+					}//end else
+				}//end else		
+			}//end outer for
+			System.out.println();
+		}//end else
+	}//end printBoardWithTurnLog
+	
+	public static String padRight(String s, int n) 
+	{
+	     return String.format("%-" + n + "s", s);  
+	}//end padRight
+
+	public static String padLeft(String s, int n) 
+	{
+	    return String.format("%" + n + "s", s);  
+	}//end padLeft
 	
 	private Point convertUserInput(String input)
 	{
@@ -275,4 +287,4 @@ public class IsolationGame
 		
 		return formattedPoint;
 	}//end formatPoint
-}
+}//end IsolationGame

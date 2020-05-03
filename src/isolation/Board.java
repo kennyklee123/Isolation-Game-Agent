@@ -9,9 +9,8 @@ public class Board
 	private Board parent;
 	private char[][] boardLayout;
 	private int depth;
-	private int utilityValue;//Value of state from evaluation function
 	private ArrayList<Point> availableSpaces;
-	private char initialPlayer; //Whose move is it?
+	private char initialPlayer; //Whose goes first?
 	
 	public Board(int bD, char player)
 	{
@@ -19,7 +18,6 @@ public class Board
 		this.parent = null;
 		this.boardLayout = new char[this.boardDimension][this.boardDimension];
 		this.depth = 0;
-		this.utilityValue = 0;
 		this.availableSpaces = new ArrayList<Point>(64);//64 is max available (prevents resizing)
 		this.initialPlayer = player;//The player who will go first
 		initializeBoardLayout();
@@ -34,20 +32,20 @@ public class Board
 		this.boardDimension = this.parent.boardDimension;
 		this.boardLayout = new char[this.boardDimension][this.boardDimension];
 		copyBoardLayout(this.parent, this.boardLayout);
-		//this.depth = this.parent.depth + 1;
-		this.utilityValue = 0;
+		this.depth = this.parent.depth + 1;
 		movePlayer(cP, destination);	
 	}//end Constructor
 
-	//SEE IF I NEED TO INPUT BOTH LOCATIONS LIKE ANTANASIO DOES
 	public void movePlayer(char cP, Point destination)
 	{
 		//Need to get current position of player to mark it as '#' after moving
-		Point lastPosition = new Point(this.findPosition(cP));		
+		Point lastPosition = new Point(this.findPosition(cP));
+		//Move player to destination position	
 		this.boardLayout[(int)destination.getX()][(int)destination.getY()] = cP;
 		//Overwrite previous position of player with '#'
 		this.boardLayout[(int)lastPosition.getX()][(int)lastPosition.getY()] = '#';
 	}//end movePlayer
+	
 	private void initializeBoardLayout()
 	{
 		for(int row = 0; row < this.boardDimension; row++)
@@ -230,65 +228,6 @@ public class Board
 		}//end for
 	}//findDiagonalSpaces
 	
-	public int evaluateBoard(char caller)
-	{
-		//Multipliers to adjust the weight of a good or bad move
-		int x = 3, y = 1, z = 3;
-		char player = caller;
-		char opponent;
-		//"this.currentPlayer" is the player
-		if(caller =='X')
-		{
-			opponent = 'O';
-		}
-		else
-			opponent = 'X';
-		//char opponent = player == 'X' ? 'O':'X';
-		
-		Point playerPosition = this.findPosition(player);
-		Point opponentPosition = this.findPosition(opponent);
-		
-		int utilityValue = x * this.findAvailableSpaces(player).size();
-		utilityValue -= y * this.findAvailableSpaces(opponent).size();
-		
-		//Reduces utility value by a factor of ten if the player is next to one of board's edges
-		if(playerPosition.getX() == 0 || playerPosition.getX() == this.boardDimension - 1)
-		{
-			utilityValue -= 10;
-		}//end if
-		//Reduces utility value by a factor of ten if the player is next to one of board's edges
-		if(playerPosition.getY() == 0 || playerPosition.getY() == this.boardDimension - 1)
-		{
-			utilityValue -= 10;
-		}
-		
-		//Subtracts a value for each surrounding space filled
-		for(int i = -1; i <= 1; i++)
-		{
-			for(int j = -1; j < 1; j++)
-			{
-				if(i + playerPosition.getX() >= 0 && i + playerPosition.getX() <= this.boardDimension - 1
-					&& j + playerPosition.getY() >= 0 && j + playerPosition.getY() <= this.boardDimension - 1)
-				{
-					if(this.boardLayout[(int)playerPosition.getX() + i][(int)playerPosition.getY() + j] != '-')
-					{
-						utilityValue -= z;
-					}//end nested if
-				}//end if
-				if(i + opponentPosition.getX() >= 0 && i + opponentPosition.getX() <= this.boardDimension - 1
-					&& j + opponentPosition.getY() >= 0 && j + opponentPosition.getY() <= this.boardDimension - 1)
-				{
-					if(this.boardLayout[(int)opponentPosition.getX() + i][(int)opponentPosition.getY() + j] != '-')
-					{
-						utilityValue += z;
-					}//end nested if
-				}//end if
-			}//end inner for
-		}//end outer for
-		this.utilityValue = utilityValue;
-		return utilityValue;
-	}//end evaluateBoard
-	
 	public void setAvailableSpaces(ArrayList<Point> availSpaces)
 	{
 		this.availableSpaces = availSpaces;
@@ -318,16 +257,6 @@ public class Board
 	{
 		return this.boardLayout;
 	}//end getBoardLayout
-		
-	public void setUtilityValue(int uv)
-	{
-		this.utilityValue = uv;
-	}//end setUtilityValue
-	
-	public int getUtilityValue()
-	{
-		return this.utilityValue;
-	}//end getUtilityValue
 	
 	public int getBoardDimension()
 	{
@@ -338,19 +267,5 @@ public class Board
 	{
 		return this.availableSpaces.size() == 0 ? true: false;
 	}//end noMovesRemaining
-	
-	public void printBoardLayout()
-	{
-		char[] boardLetters = {'A', 'B', 'C' , 'D', 'E', 'F', 'G', 'H'};
-		
-		System.out.print("  1 2 3 4 5 6 7 8");
-		for(int i = 0; i < this.boardDimension; i++)
-		{
-			System.out.print("\n" + boardLetters[i] + " ");
-			for(int j = 0; j < this.boardDimension; j++)
-			{
-				System.out.print(String.valueOf(this.boardLayout[i][j]) + " ");
-			}//end inner for
-		}//end outer for
-	}//end printBoardLayout
+
 }//end Board
